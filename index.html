@@ -13,84 +13,7 @@
         <script type="text/babel"> //notes basically
             const title = (<h1>HuH Studio</h1>);
 
-            //ReactDOM.createRoot(document.getElementById('page1')).render([title]);  // direct render
-            //var container = ReactDOM.createRoot(document.getElementById('page1'));  //indirect render by containerizing
-            //container.render([title]);  //container (div) will render specified (title)
-        </script>
-
-        <script type="text/babel">
-            const portfolio = {
-                "Sia1": {
-                    "name": "Sia's Studio #1",
-                    "location": "Shirogane, Ward 16, Plot 57",
-                    "shoots": {
-                        "sia1.1": {
-                            "name": "Sia's Studio #1 Shoot 1",
-                            "picture": "img/ffxiv_dx11 2026-07-09 21-27-59_332.png",
-                            "description": "Void shooting location - jump on letter in entryway to access"
-                        },
-                        "sia1.2": {
-                            "name": "Sia's Studio #1 Shoot 2",
-                            "picture": "img/ffxiv_dx11 2026-07-09 21-29-53_906.png",
-                            "description": "Void shooting location - jump on letter in entryway to access"
-                        },
-                        "sia1.3": {
-                            "name": "Sia's Studio #1 Shoot 3",
-                            "picture": "img/ffxiv_dx11 2026-07-09 21-31-02_698.png",
-                            "description": "Downstairs shooting location"
-                        }
-                    }
-                },
-                "Sia2": {
-                    "name": "Bridge",
-                    "location": "Shirogane, Ward 25, Plot 47, Room 1",
-                    "shoots": {
-                        "sia2.1": {
-                            "name": "Bridge",
-                            "picture": "img/ffxiv_dx11 2026-07-08 01-38-37_165.png",
-                            "description": ""
-                        }
-                    }
-                },
-                "Sia3": {
-                    "name": "Ethereal",
-                    "location": "Shirogane, Ward 25, Plot 47, Room 1",
-                    "shoots": {
-                        "sia3.1": {
-                            "name": "Ethereal Stage",
-                            "picture": "img/ffxiv_dx11 2026-07-09 21-18-45_371.png",
-                            "description": ""
-                        },
-                        "sia3.2": {
-                            "name": "Sia's Studio #3 Shoot 2",
-                            "picture": "img/ffxiv_dx11 2026-07-09 21-18-20_047.png",
-                            "description": ""
-                        }
-                    }
-                },
-                "Sia4":{
-                    "name": "Void",
-                    "location": "Shirogane, Ward 25, Plot 47, Room 2",
-                    "shoots": {
-                        "sia4.1": {
-                            "name": "Sia's Studio #3 Shoot 1",
-                            "picture": "img/ffxiv_dx11 2026-07-09 21-21-24_706.png",
-                            "description": "Void shooting location - jump on letter in entryway to access"
-                        },
-                        "sia4.2": {
-                            "name": "Sia's Studio #3 Shoot 2",
-                            "picture": "img/ffxiv_dx11 2026-07-09 21-23-08_259.png",
-                            "description": "Void shooting location - jump on letter in entryway to access"
-                        },
-                        "sia4.3": {
-                            "name": "Sia's Studio #3 Shoot 3",
-                            "picture": "img/ffxiv_dx11 2026-07-09 21-23-46_461.png",
-                            "description": "Void shooting location - jump on letter in entryway to access"
-                        }
-                    }
-                }
-            };
-            function Shoot({ locId, shootId }) {
+            function Shoot({ portfolio, locId, shootId }) {
                 const shoot = portfolio[locId].shoots[shootId];
 
                 return (
@@ -100,13 +23,17 @@
                             <p>{shoot.description}</p>
                         </div>
                         <div>
-                            <img src={shoot.picture} alt={shoot.name} />
+                            <img 
+                                src={shoot.picture} 
+                                alt={shoot.name} 
+                                style={{ maxWidth: "700px", maxHeight: "1000px" }}
+                            />
                         </div>
                     </div>
                 );
             }
 
-            function Location({ locId }) {
+            function Location({ portfolio, locId }) {
                 const studio = portfolio[locId];
 
                 return (
@@ -115,17 +42,49 @@
                         <p>Location: {studio.location}</p>
 
                         {Object.keys(studio.shoots).map(shootId => (
-                            <Shoot key={shootId} locId={locId} shootId={shootId} />
+                            <Shoot
+                                key={shootId}
+                                portfolio={portfolio}
+                                locId={locId}
+                                shootId={shootId}
+                            />
                         ))}
                     </div>
                 );
             }
 
             function Portfolio() {
+                const [portfolio, setPortfolio] = React.useState(null);
+                const [error, setError] = React.useState(null);
+
+                React.useEffect(() => {
+                    fetch("portfolio.json")
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error("Could not load portfolio.json");
+                            }
+                            return response.json();
+                        })
+                        .then(data => setPortfolio(data))
+                        .catch(err => setError(err.message));
+                }, []);
+
+                if (error) {
+                    return <p>Error: {error}</p>;
+                }
+
+                if (!portfolio) {
+                    return <p>Loading portfolio...</p>;
+                }
+
                 return (
                     <div>
                         {Object.keys(portfolio).map(locId => (
-                            <Location key={locId} locId={locId} />
+                            <Location
+                                key={locId}
+                                portfolio={portfolio}
+                                locId={locId}
+                            />
                         ))}
                     </div>
                 );
